@@ -1,5 +1,7 @@
 # AthenaVision
 
+![AthenaVision](public/og-image.png)
+
 Intelligent image-to-text extraction with dual AI verification and anomaly detection.
 
 Most OCR tools send your image to one model and return whatever it says. AthenaVision runs **two independent AI extractions** with different strategies, diffs the outputs character-by-character, and flags where the models disagreed — so you see exactly where the uncertainty is.
