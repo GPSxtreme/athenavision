@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#030308"/>
+  <!-- Outer eye shape -->
+  <path d="M256 140c-80 0-148 52-176 116 28 64 96 116 176 116s148-52 176-116c-28-64-96-116-176-116z" fill="none" stroke="#1a1a3a" stroke-width="2"/>
+  <!-- Cyan stream (left half of iris) -->
+  <path d="M256 196a60 60 0 0 0 0 120" fill="none" stroke="#00f0ff" stroke-width="6" stroke-linecap="round"/>
+  <!-- Magenta stream (right half of iris) -->
+  <path d="M256 196a60 60 0 0 1 0 120" fill="none" stroke="#ff00aa" stroke-width="6" stroke-linecap="round"/>
+  <!-- Center pupil -->
+  <circle cx="256" cy="256" r="16" fill="#00f0ff"/>
+  <circle cx="256" cy="256" r="8" fill="#030308"/>
+  <!-- Scan line accent -->
+  <line x1="120" y1="256" x2="200" y2="256" stroke="#00f0ff" stroke-width="1.5" opacity="0.4"/>
+  <line x1="312" y1="256" x2="392" y2="256" stroke="#ff00aa" stroke-width="1.5" opacity="0.4"/>
+</svg>
