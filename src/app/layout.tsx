@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
 
@@ -26,9 +27,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${syne.variable} ${plexMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-[#050510] text-zinc-100 font-[family-name:var(--font-geist-sans)]">
+      <body className="noise min-h-full flex flex-col bg-[var(--void)] text-[var(--text)] font-[family-name:var(--font-plex-mono)] antialiased selection:bg-[var(--cyan)]/20 selection:text-[var(--cyan)]">
         {children}
       </body>
     </html>
