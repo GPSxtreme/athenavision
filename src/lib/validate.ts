@@ -16,18 +16,28 @@ function checkGibberish(text: string): ValidationCheck {
   };
 }
 
+function isSuspiciousCodePoint(cp: number): boolean {
+  // Control characters (excluding tab \u0009, LF \u000A, CR \u000D)
+  if (cp <= 0x0008 || cp === 0x000b || cp === 0x000c) return true;
+  if (cp >= 0x000e && cp <= 0x001f) return true;
+  // Private Use Area and Specials block
+  if (cp >= 0xe000 && cp <= 0xf8ff) return true;
+  if (cp >= 0xfff0) return true;
+  return false;
+}
+
 function checkUnicodeSanity(text: string): ValidationCheck {
   // Check for suspicious Unicode: control chars, private use area, etc.
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — detecting control characters by design
-  const suspicious =
-    /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uE000-\uF8FF\uFFF0-\uFFFF]/g;
-  const matches = text.match(suspicious);
+  let count = 0;
+  for (const char of text) {
+    const cp = char.codePointAt(0) ?? 0;
+    if (isSuspiciousCodePoint(cp)) count++;
+  }
   return {
     name: "unicode-sanity",
-    passed: !matches || matches.length === 0,
-    detail: matches
-      ? `Found ${matches.length} suspicious Unicode character(s)`
-      : "Clean",
+    passed: count === 0,
+    detail:
+      count > 0 ? `Found ${count} suspicious Unicode character(s)` : "Clean",
   };
 }
 

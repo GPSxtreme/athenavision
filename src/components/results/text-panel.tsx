@@ -62,7 +62,7 @@ export function TextPanel({ result }: TextPanelProps) {
   );
   const [activeAnomaly, setActiveAnomaly] = useState<Anomaly | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const editRef = useRef<HTMLDivElement>(null);
+  const editRef = useRef<HTMLPreElement>(null);
   const badge = confidenceBadge(result.confidence);
 
   const handleResolve = useCallback(
