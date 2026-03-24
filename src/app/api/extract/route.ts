@@ -1,4 +1,4 @@
-import { diffExtractions } from "@/lib/diff";
+import { diffExtractions, normalizeWhitespace } from "@/lib/diff";
 import { extractWithVision } from "@/lib/openrouter";
 import { PROMPT_A, PROMPT_B } from "@/lib/prompts";
 import { createSSEStream } from "@/lib/sse";
@@ -100,8 +100,10 @@ export async function POST(request: Request) {
         return;
       }
 
-      // Use whichever stream succeeded as primary text
-      const primaryText = streamAFailed ? streamBText : streamAText;
+      // Use whichever stream succeeded as primary text, normalized so anomaly positions align
+      const primaryText = normalizeWhitespace(
+        streamAFailed ? streamBText : streamAText,
+      );
 
       // Diff phase (only if both streams succeeded)
       let anomalies: Anomaly[] = [];

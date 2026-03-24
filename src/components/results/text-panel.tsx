@@ -28,11 +28,13 @@ function buildSegments(
   text: string,
   anomalies: Anomaly[],
 ): Array<
-  { type: "text"; value: string } | { type: "anomaly"; anomaly: Anomaly }
+  | { type: "text"; value: string; cursor: number }
+  | { type: "anomaly"; anomaly: Anomaly; cursor: number }
 > {
   const sorted = [...anomalies].sort((a, b) => a.position - b.position);
   const segments: Array<
-    { type: "text"; value: string } | { type: "anomaly"; anomaly: Anomaly }
+    | { type: "text"; value: string; cursor: number }
+    | { type: "anomaly"; anomaly: Anomaly; cursor: number }
   > = [];
   let cursor = 0;
 
@@ -41,15 +43,16 @@ function buildSegments(
       segments.push({
         type: "text",
         value: text.slice(cursor, anomaly.position),
+        cursor,
       });
     }
-    segments.push({ type: "anomaly", anomaly });
+    segments.push({ type: "anomaly", anomaly, cursor: anomaly.position });
     cursor =
       anomaly.position + (anomaly.streamA.length || anomaly.streamB.length);
   }
 
   if (cursor < text.length) {
-    segments.push({ type: "text", value: text.slice(cursor) });
+    segments.push({ type: "text", value: text.slice(cursor), cursor });
   }
 
   return segments;
@@ -163,7 +166,7 @@ export function TextPanel({ result }: TextPanelProps) {
           >
             {segments.map((seg) =>
               seg.type === "text" ? (
-                <span key={`t-${seg.value.slice(0, 20)}`}>{seg.value}</span>
+                <span key={`t-${seg.cursor}`}>{seg.value}</span>
               ) : (
                 <span
                   key={`a-${seg.anomaly.position}`}

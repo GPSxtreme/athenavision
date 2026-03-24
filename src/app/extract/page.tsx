@@ -15,21 +15,21 @@ function reducer(state: AppState, action: AppAction): AppState {
         stage: "processing",
         file: action.file,
         imageUrl: action.imageUrl,
-        streamATokens: [],
-        streamBTokens: [],
+        streamAText: "",
+        streamBText: "",
         currentStatus: "extracting",
       };
     case "STREAM_A_TOKEN":
       if (state.stage !== "processing") return state;
       return {
         ...state,
-        streamATokens: [...state.streamATokens, action.token],
+        streamAText: state.streamAText + action.token,
       };
     case "STREAM_B_TOKEN":
       if (state.stage !== "processing") return state;
       return {
         ...state,
-        streamBTokens: [...state.streamBTokens, action.token],
+        streamBText: state.streamBText + action.token,
       };
     case "STATUS_CHANGE":
       if (state.stage !== "processing") return state;
@@ -125,8 +125,8 @@ export default function ExtractPage() {
       {state.stage === "processing" && (
         <CinematicView
           imageUrl={state.imageUrl}
-          streamATokens={state.streamATokens}
-          streamBTokens={state.streamBTokens}
+          streamAText={state.streamAText}
+          streamBText={state.streamBText}
           currentStatus={state.currentStatus}
         />
       )}

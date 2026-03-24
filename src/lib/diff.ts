@@ -2,7 +2,7 @@
 import { diffChars } from "diff";
 import type { Anomaly, AnomalyType } from "./types";
 
-function normalizeWhitespace(text: string): string {
+export function normalizeWhitespace(text: string): string {
   return text
     .split("\n")
     .map((line) => line.replace(/\s+/g, " ").trim())
@@ -23,6 +23,15 @@ export function diffExtractions(
   const normalizedA = normalizeWhitespace(streamAText);
   const normalizedB = normalizeWhitespace(streamBText);
   const totalCharCount = Math.max(normalizedA.length, normalizedB.length);
+
+  if (totalCharCount === 0) {
+    return {
+      anomalies: [],
+      anomalyCharCount: 0,
+      totalCharCount: 0,
+      lowConfidenceOverall: false,
+    };
+  }
 
   const changes = diffChars(normalizedA, normalizedB);
   const anomalies: Anomaly[] = [];
@@ -62,7 +71,7 @@ export function diffExtractions(
     anomalyCharCount += charCount;
 
     anomalies.push({ position, streamA, streamB, type });
-    position += streamA.length || streamB.length;
+    position += streamA.length;
   }
 
   const lowConfidenceOverall = anomalyCharCount / totalCharCount > 0.5;

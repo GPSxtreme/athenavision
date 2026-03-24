@@ -65,8 +65,8 @@ export type AppState =
       stage: "processing";
       imageUrl: string;
       file: File;
-      streamATokens: string[];
-      streamBTokens: string[];
+      streamAText: string;
+      streamBText: string;
       currentStatus: Stage;
     }
   | {

@@ -4,8 +4,8 @@ import type { Stage } from "@/lib/types";
 
 interface CinematicViewProps {
   imageUrl: string;
-  streamATokens: string[];
-  streamBTokens: string[];
+  streamAText: string;
+  streamBText: string;
   currentStatus: Stage;
 }
 
@@ -19,13 +19,10 @@ const statusLabels: Record<Stage, string> = {
 
 export function CinematicView({
   imageUrl,
-  streamATokens,
-  streamBTokens,
+  streamAText,
+  streamBText,
   currentStatus,
 }: CinematicViewProps) {
-  const streamAText = streamATokens.join("");
-  const streamBText = streamBTokens.join("");
-
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6">
       {/* Image with scan line and glow */}

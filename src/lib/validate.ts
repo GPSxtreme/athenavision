@@ -8,7 +8,7 @@ function checkGibberish(text: string): ValidationCheck {
     /[^a-zA-Z0-9\s.,;:!?'"()\-/@#$%&*+=₹€£¥\u0900-\u097F]/g,
     "",
   );
-  const ratio = meaningful.length / text.length;
+  const ratio = text.length === 0 ? 1 : meaningful.length / text.length;
   return {
     name: "gibberish",
     passed: ratio > 0.7,
