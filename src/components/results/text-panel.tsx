@@ -188,15 +188,6 @@ export function TextPanel({ result }: TextPanelProps) {
                     <AnomalyPopover
                       anomaly={seg.anomaly}
                       onResolve={(value) => handleResolve(seg.anomaly, value)}
-                      onEdit={(value) =>
-                        handleEdit(
-                          text.slice(0, seg.anomaly.position) +
-                            value +
-                            text.slice(
-                              seg.anomaly.position + seg.anomaly.streamA.length,
-                            ),
-                        )
-                      }
                       onClose={() => setActiveAnomaly(null)}
                     />
                   )}
