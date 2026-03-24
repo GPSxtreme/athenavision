@@ -47,6 +47,13 @@ export async function extractWithVision(
 
   if (!response.ok) {
     const status = response.status;
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = body?.error?.message || JSON.stringify(body);
+    } catch {
+      detail = response.statusText;
+    }
     if (status === 429 && _retryCount < 1) {
       // Rate limited — single retry with 2s backoff
       await new Promise((r) => setTimeout(r, 2000));
@@ -59,7 +66,7 @@ export async function extractWithVision(
         _retryCount + 1,
       );
     }
-    throw new Error(`OpenRouter API error: ${status}`);
+    throw new Error(`OpenRouter API error ${status}: ${detail}`);
   }
 
   const reader = response.body?.getReader();

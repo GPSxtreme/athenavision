@@ -89,10 +89,13 @@ export async function POST(request: Request) {
       if (resultB.status === "rejected") streamBFailed = true;
 
       if (streamAFailed && streamBFailed) {
+        const reasonA = resultA.status === "rejected" ? resultA.reason : "unknown";
+        const reasonB = resultB.status === "rejected" ? resultB.reason : "unknown";
+        console.error("Both streams failed:", { reasonA, reasonB });
         send({
           event: "error",
           data: {
-            message: "Both extraction streams failed. Please try again.",
+            message: `Both extraction streams failed: ${reasonA}`,
             recoverable: true,
           },
         });
