@@ -10,30 +10,33 @@ Vision models extract text from images well, but they hallucinate, confuse chara
 
 ## Architecture
 
-**Approach: Route Handler + SSE**
+**Approach: Route Handler + Streaming Response**
 
-The client uploads an image, opens an SSE connection, and receives real-time events as the pipeline progresses. All sensitive logic (API calls, diffing, validation) runs server-side.
+The client POSTs an image via `fetch()` and reads the response as a `ReadableStream` in SSE text format. This avoids the `EventSource` GET-only limitation while keeping the same wire format. All sensitive logic (API calls, diffing, validation) runs server-side.
 
 ### Pipeline
 
 ```
 Image Upload (client)
     ↓ POST /api/extract (FormData)
+    ↓ Response: ReadableStream in SSE format
     ↓
 Dual Extraction (server, parallel)
     ├── Stream A: "Extract all text verbatim. Preserve structure."
     └── Stream B: "Perform OCR. Flag uncertain characters with [?]."
-    ↓ tokens streamed via SSE events
+    ↓ tokens streamed as SSE events
 Diff Engine (server)
-    ↓ character-level comparison, flag disagreements
+    ↓ Myers diff algorithm on completed outputs
 Structural Validation (server)
     ↓ gibberish detection, unicode sanity, repeated-char patterns
-Result (SSE complete event)
+Result (complete event)
     ↓
 Interactive Results UI (client)
 ```
 
 ### SSE Event Protocol
+
+Client reads the response stream via `fetch()` + `ReadableStream` + manual SSE parsing (not `EventSource`).
 
 ```
 event: status        → { stage: "extracting" }
@@ -45,25 +48,77 @@ event: status        → { stage: "validating" }
 event: validation    → { confidence: 0.95, checks: [...] }
 event: status        → { stage: "complete" }
 event: result        → { text: "...", anomalies: [...], confidence: 0.95 }
+event: error         → { message: "...", recoverable: true/false }
 ```
+
+### Image Constraints
+
+- **Max file size:** 10MB
+- **Accepted formats:** JPEG, PNG, WebP
+- **Client → Server:** Image sent as a `File` in a `FormData` POST body
+- **Server → OpenRouter:** Server reads the file, validates it, and base64-encodes it inline in the prompt payload
+- Client-side validation before upload; server-side validation as a guard
 
 ## Pages & Routing
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Landing page — hero, how-it-works, differentiators, CTA → `/app` |
-| `/app` | Extraction app — upload → cinematic processing → side-by-side results |
+| `/` | Landing page — hero, how-it-works, differentiators, CTA → `/extract` |
+| `/extract` | Extraction app — upload → cinematic processing → side-by-side results |
 
 ### App Page States
 
-The `/app` page is a single page driven by state transitions:
+The `/extract` page is a single client component driven by a `useReducer` state machine:
 
 1. **Upload** — drag & drop zone + file picker
 2. **Processing** — cinematic view (scan line, dual streams)
 3. **Results** — side-by-side (image left, extracted text right, anomaly highlights)
-4. **Error** — if both streams fail or image is invalid
+4. **Error** — displays error message with retry option
+
+State transitions: `upload → processing → results` or `upload → processing → error`. The `results` and `error` states can transition back to `upload` via re-extract/retry.
 
 No auth, no persistence, no database. Stateless — refresh and start over.
+
+## Error Handling
+
+**Partial failure (one stream fails):**
+Fall back to single-extraction mode. The result is returned without anomaly diffing, but structural validation still runs. A warning banner indicates reduced confidence: "Only one extraction succeeded — anomaly detection unavailable."
+
+**Both streams fail:**
+Transition to error state with the failure reason. User can retry.
+
+**OpenRouter rate limiting (429):**
+Single retry with 2s backoff. If retry fails, surface the error to the user.
+
+**Network disconnect mid-stream:**
+Client detects stream closure. If results are partially received, show what we have with a "connection lost" banner. Otherwise, error state with retry.
+
+**Timeout:**
+60s max per extraction. If exceeded, abort and show error.
+
+## Diff Engine
+
+**Algorithm:** Myers diff (via the `diff` npm package) on the two completed extraction strings.
+
+**Whitespace handling:** Normalize whitespace before diffing (collapse multiple spaces, trim lines). Whitespace-only differences are not flagged as anomalies.
+
+**Anomaly generation:** Each diff hunk where the two streams disagree becomes an anomaly with `position`, `streamA` value, `streamB` value, and `type` (character-confusion, missing-text, extra-text).
+
+**Threshold:** If more than 50% of characters differ, the entire extraction is flagged as low-confidence rather than generating hundreds of individual anomalies.
+
+## Confidence Score
+
+Formula: `1 - (anomaly_character_count / total_character_count)`
+
+- `anomaly_character_count`: total characters involved in diff hunks
+- `total_character_count`: length of the longer extraction result
+
+Thresholds for display:
+- >= 0.95: green badge "High confidence"
+- 0.80 - 0.94: amber badge "Review recommended"
+- < 0.80: red badge "Low confidence"
+
+Structural validation issues (gibberish, invalid unicode) each deduct a flat 0.05 from the score.
 
 ## UI Design
 
@@ -74,7 +129,7 @@ No auth, no persistence, no database. Stateless — refresh and start over.
 - Hero section with tagline explaining what AthenaVision does and how it differs from basic OCR
 - How-it-works section showing the pipeline visually
 - Differentiators section
-- CTA button → navigates to `/app`
+- CTA button → navigates to `/extract`
 
 ### Cinematic Processing View
 
@@ -126,11 +181,11 @@ src/
 │   ├── page.tsx                  # Landing page
 │   ├── layout.tsx                # Root layout (dark mode, fonts)
 │   ├── globals.css               # Tailwind + custom animations
-│   └── app/
-│       └── page.tsx              # Main extraction app
-├── api/
-│   └── extract/
-│       └── route.ts              # POST handler → SSE stream
+│   ├── extract/
+│   │   └── page.tsx              # Main extraction app (client component)
+│   └── api/
+│       └── extract/
+│           └── route.ts          # POST handler → streaming response
 ├── components/
 │   ├── landing/                  # Hero, how-it-works, CTA
 │   ├── upload/                   # Drag & drop zone
@@ -139,13 +194,17 @@ src/
 └── lib/
     ├── openrouter.ts             # OpenRouter API client
     ├── prompts.ts                # Extraction prompts A & B
-    ├── diff.ts                   # Character-level diff engine
-    └── validate.ts               # Structural validation
+    ├── diff.ts                   # Diff engine (wraps `diff` npm package)
+    ├── validate.ts               # Structural validation
+    ├── sse.ts                    # SSE formatting helpers (server) + parser (client)
+    └── types.ts                  # Shared types (anomaly, validation result, SSE events)
 ```
+
+**Route handler runtime:** `'nodejs'` is the default in Next.js 16. No explicit `runtime` export needed.
 
 ## External Dependencies
 
-**None beyond existing stack.** Tailwind + vanilla React handles all UI. OpenRouter is a fetch call.
+- `diff` — Myers diff algorithm for comparing extraction outputs
 
 **Env vars:**
 - `OPENROUTER_API_KEY` — single key for all model calls
@@ -159,3 +218,4 @@ src/
 - **Preprocessing:** Sharp/OpenCV for de-noise, de-skew, enhance
 - **Persistence:** Save extraction history
 - **Domain-specific validation:** KYC fields, medical prescriptions, invoice schemas
+- **Accessibility:** Keyboard navigation, screen reader support, color-blind-friendly palette
