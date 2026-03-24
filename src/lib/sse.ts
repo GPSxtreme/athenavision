@@ -22,7 +22,13 @@ export function createSSEStream() {
   }
 
   function close() {
-    controller?.close();
+    if (controller) {
+      try {
+        controller.close();
+      } catch {
+        // Already closed
+      }
+    }
   }
 
   return { stream, send, close };
