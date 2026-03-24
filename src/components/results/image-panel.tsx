@@ -62,18 +62,33 @@ export function ImagePanel({ imageUrl, fileName, fileSize }: ImagePanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      {/* Header bar */}
+      <div
+        className="glass flex items-center justify-between px-4 py-2"
+        style={{ borderBottom: "1px solid var(--border)" }}
+      >
+        <span
+          className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+          style={{ color: "var(--text-dim)" }}
+        >
           Original
         </span>
-        <span className="text-xs text-zinc-600">
-          {fileName} · {formatSize(fileSize)}
+        <span
+          className="text-[10px] font-[family-name:var(--font-plex-mono)]"
+          style={{ color: "var(--text-dim)" }}
+        >
+          {fileName}
+          <span className="mx-1.5 opacity-40">·</span>
+          {formatSize(fileSize)}
         </span>
       </div>
+
+      {/* Image area */}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: pan/zoom container needs mouse events */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative flex-1 overflow-hidden bg-grid-dense cursor-grab active:cursor-grabbing"
+        style={{ background: "var(--void)" }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -91,6 +106,18 @@ export function ImagePanel({ imageUrl, fileName, fileSize }: ImagePanelProps) {
             }}
             draggable={false}
           />
+        </div>
+
+        {/* Zoom level indicator */}
+        <div
+          className="absolute bottom-3 right-3 rounded px-2 py-1 font-[family-name:var(--font-plex-mono)] text-[10px]"
+          style={{
+            background: "rgba(3,3,8,0.75)",
+            border: "1px solid var(--border)",
+            color: "var(--text-dim)",
+          }}
+        >
+          {(scale * 100).toFixed(0)}%
         </div>
       </div>
     </div>

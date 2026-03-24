@@ -21,29 +21,74 @@ export function ResultsView({
   onReExtract,
 }: ResultsViewProps) {
   return (
-    <div className="flex flex-1 flex-col animate-fade-in-up">
+    <div className="flex flex-1 flex-col animate-fade-in">
       {/* Top bar */}
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
-        <h2 className="text-sm font-semibold text-zinc-300">Results</h2>
+      <div
+        className="glass flex items-center justify-between px-4 py-2"
+        style={{
+          borderBottom: "1px solid transparent",
+          backgroundImage:
+            "linear-gradient(135deg, rgba(15,15,30,0.9), rgba(10,10,20,0.7))",
+          boxShadow:
+            "0 1px 0 0 rgba(0,240,255,0.12), 0 2px 0 0 rgba(255,0,170,0.06)",
+        }}
+      >
+        <h2
+          className="text-xs font-semibold uppercase tracking-[0.15em] font-[family-name:var(--font-syne)]"
+          style={{ color: "var(--text)" }}
+        >
+          Results
+        </h2>
         <button
           type="button"
           onClick={onReExtract}
-          className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 transition-colors"
+          className="relative rounded-lg px-3 py-1.5 text-xs font-medium transition-all border-gradient"
+          style={{
+            background: "rgba(10,10,20,0.6)",
+            border: "1px solid var(--border)",
+            color: "var(--text-dim)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "var(--text)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-dim)";
+          }}
         >
           Re-extract
         </button>
       </div>
 
-      {/* Side by side */}
-      <div className="flex flex-1 divide-x divide-zinc-800 overflow-hidden">
-        <div className="flex-1">
+      {/* Side-by-side: stacks vertically on mobile, side-by-side on md+ */}
+      <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
+        <div className="flex-1 min-h-0">
           <ImagePanel
             imageUrl={imageUrl}
             fileName={fileName}
             fileSize={fileSize}
           />
         </div>
-        <div className="flex-1">
+
+        {/* Divider: gradient line cyan → magenta */}
+        <div
+          className="hidden md:block w-px flex-shrink-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, var(--cyan), var(--magenta))",
+            opacity: 0.2,
+          }}
+        />
+        <div
+          className="md:hidden h-px w-full flex-shrink-0"
+          style={{
+            background:
+              "linear-gradient(to right, var(--cyan), var(--magenta))",
+            opacity: 0.2,
+          }}
+        />
+
+        <div className="flex-1 min-h-0">
           <TextPanel result={result} />
         </div>
       </div>

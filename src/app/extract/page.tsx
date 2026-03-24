@@ -113,15 +113,30 @@ export default function ExtractPage() {
 
   return (
     <div className="flex flex-1 flex-col">
+      {/* Upload state */}
       {state.stage === "upload" && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Extract text from an image
-          </h1>
-          <DropZone onFileSelected={handleFileSelected} />
+        <div className="relative flex flex-1 flex-col items-center justify-center gap-8 bg-grid">
+          <div className="animate-fade-in flex flex-col items-center gap-4 text-center">
+            <h1
+              className="text-3xl font-bold tracking-tight font-[family-name:var(--font-syne)]"
+              style={{ color: "var(--text)" }}
+            >
+              Extract Text
+            </h1>
+            <p
+              className="text-sm tracking-widest uppercase font-[family-name:var(--font-plex-mono)]"
+              style={{ color: "var(--text-dim)" }}
+            >
+              Upload an image to begin extraction
+            </p>
+          </div>
+          <div className="animate-slide-up delay-200">
+            <DropZone onFileSelected={handleFileSelected} />
+          </div>
         </div>
       )}
 
+      {/* Processing state */}
       {state.stage === "processing" && (
         <CinematicView
           imageUrl={state.imageUrl}
@@ -131,6 +146,7 @@ export default function ExtractPage() {
         />
       )}
 
+      {/* Results state */}
       {state.stage === "results" && (
         <ResultsView
           imageUrl={state.imageUrl}
@@ -141,15 +157,51 @@ export default function ExtractPage() {
         />
       )}
 
+      {/* Error state */}
       {state.stage === "error" && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4">
-          <div className="rounded-xl border border-red-900/50 bg-red-950/30 px-6 py-4 text-center">
-            <p className="text-sm text-red-400">{state.message}</p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 animate-fade-in">
+          <div
+            className="glass rounded-xl px-8 py-6 text-center"
+            style={{
+              border: "1px solid rgba(255,0,170,0.25)",
+              boxShadow:
+                "0 0 32px rgba(255,0,170,0.08), inset 0 0 24px rgba(0,0,0,0.4)",
+              maxWidth: "28rem",
+              width: "100%",
+            }}
+          >
+            {/* Error icon with glitch animation */}
+            <div
+              className="mb-4 text-3xl animate-glitch"
+              style={{ color: "var(--magenta)" }}
+            >
+              ⚠
+            </div>
+            <p
+              className="text-sm font-[family-name:var(--font-plex-mono)]"
+              style={{ color: "var(--text-dim)" }}
+            >
+              {state.message}
+            </p>
           </div>
+          {/* Retry button with border-gradient */}
           <button
             type="button"
             onClick={() => dispatch({ type: "RESET" })}
-            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:border-zinc-500 transition-colors"
+            className="relative rounded-lg px-6 py-2.5 text-sm font-medium transition-all border-gradient"
+            style={{
+              background: "rgba(10,10,20,0.6)",
+              border: "1px solid var(--border)",
+              color: "var(--text-dim)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text-dim)";
+            }}
           >
             Try again
           </button>

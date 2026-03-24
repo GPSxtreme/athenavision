@@ -57,13 +57,34 @@ export function AnomalyPopover({
   const explanation = getExplanation(anomaly);
 
   return (
-    <div className="absolute z-50 mt-1 w-72 rounded-lg border border-zinc-700 bg-[#1a1a2e] p-4 shadow-xl">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs text-zinc-400">{explanation}</span>
+    <div
+      className="absolute z-50 mt-1 w-72 rounded-lg p-4 shadow-xl glass"
+      style={{
+        border: "1px solid rgba(0,240,255,0.2)",
+        boxShadow:
+          "0 0 24px rgba(0,240,255,0.08), 0 0 60px rgba(255,0,170,0.04), inset 0 0 24px rgba(0,0,0,0.4)",
+      }}
+    >
+      {/* Header */}
+      <div className="mb-3 flex items-center justify-between">
+        <span
+          className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+          style={{ color: "var(--text-dim)" }}
+        >
+          {explanation}
+        </span>
         <button
           type="button"
           onClick={onClose}
-          className="text-zinc-500 hover:text-zinc-300"
+          className="transition-colors"
+          style={{ color: "var(--text-dim)" }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "var(--cyan)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-dim)";
+          }}
         >
           ✕
         </button>
@@ -72,19 +93,53 @@ export function AnomalyPopover({
       {/* Show what both extractions saw, compact */}
       {anomaly.streamA !== anomaly.streamB && (
         <div className="mb-3 flex gap-2 text-[11px]">
-          <div className="flex-1 rounded bg-zinc-800/50 px-2 py-1">
-            <span className="text-zinc-500">Saw: </span>
-            <span className="font-mono text-zinc-300">
+          <div
+            className="flex-1 rounded px-2 py-1.5"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,240,255,0.06), rgba(0,240,255,0.02))",
+              border: "1px solid rgba(0,240,255,0.12)",
+            }}
+          >
+            <span
+              className="uppercase tracking-wider"
+              style={{ color: "var(--text-dim)", fontSize: "9px" }}
+            >
+              Saw:{" "}
+            </span>
+            <span
+              className="font-[family-name:var(--font-plex-mono)]"
+              style={{ color: "var(--text)" }}
+            >
               {anomaly.streamA || (
-                <span className="text-zinc-600 italic">nothing</span>
+                <span className="italic" style={{ color: "var(--text-dim)" }}>
+                  nothing
+                </span>
               )}
             </span>
           </div>
-          <div className="flex-1 rounded bg-zinc-800/50 px-2 py-1">
-            <span className="text-zinc-500">Saw: </span>
-            <span className="font-mono text-zinc-300">
+          <div
+            className="flex-1 rounded px-2 py-1.5"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255,0,170,0.06), rgba(255,0,170,0.02))",
+              border: "1px solid rgba(255,0,170,0.12)",
+            }}
+          >
+            <span
+              className="uppercase tracking-wider"
+              style={{ color: "var(--text-dim)", fontSize: "9px" }}
+            >
+              Saw:{" "}
+            </span>
+            <span
+              className="font-[family-name:var(--font-plex-mono)]"
+              style={{ color: "var(--text)" }}
+            >
               {cleanUncertainty(anomaly.streamB) || (
-                <span className="text-zinc-600 italic">nothing</span>
+                <span className="italic" style={{ color: "var(--text-dim)" }}>
+                  nothing
+                </span>
               )}
             </span>
           </div>
@@ -93,14 +148,30 @@ export function AnomalyPopover({
 
       {/* Editable suggestion */}
       <div className="mb-3">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#4ade80] mb-1">
+        <div
+          className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em]"
+          style={{ color: "var(--cyan)" }}
+        >
           Suggested
         </div>
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-2.5 py-1.5 font-mono text-sm text-zinc-200 outline-none focus:border-[#4ade80]/50"
+          className="w-full rounded-md px-2.5 py-1.5 text-sm outline-none transition-all font-[family-name:var(--font-plex-mono)]"
+          style={{
+            background: "rgba(3,3,8,0.8)",
+            border: "1px solid var(--border)",
+            color: "var(--text)",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.border = "1px solid rgba(0,240,255,0.5)";
+            e.currentTarget.style.boxShadow = "0 0 12px rgba(0,240,255,0.12)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.border = "1px solid var(--border)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
         />
       </div>
 
@@ -109,14 +180,47 @@ export function AnomalyPopover({
         <button
           type="button"
           onClick={() => onResolve(value)}
-          className="flex-1 rounded-md bg-[#4ade80]/15 border border-[#4ade80]/30 px-3 py-1.5 text-xs font-semibold text-[#4ade80] hover:bg-[#4ade80]/25 transition-colors"
+          className="flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,240,255,0.15), rgba(0,240,255,0.08))",
+            border: "1px solid rgba(0,240,255,0.3)",
+            color: "var(--cyan)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "linear-gradient(135deg, rgba(0,240,255,0.25), rgba(0,240,255,0.15))";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow =
+              "0 0 16px rgba(0,240,255,0.2)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "linear-gradient(135deg, rgba(0,240,255,0.15), rgba(0,240,255,0.08))";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+          }}
         >
           Accept
         </button>
         <button
           type="button"
           onClick={() => onResolve("")}
-          className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:bg-zinc-700 transition-colors"
+          className="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+          style={{
+            background: "rgba(10,10,20,0.8)",
+            border: "1px solid var(--border)",
+            color: "var(--text-dim)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
+              "rgba(0,240,255,0.2)";
+            (e.currentTarget as HTMLButtonElement).style.color = "var(--text)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
+              "var(--border)";
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-dim)";
+          }}
         >
           Remove
         </button>

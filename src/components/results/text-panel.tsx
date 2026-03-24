@@ -13,14 +13,23 @@ function confidenceBadge(confidence: number) {
   if (confidence >= 0.95)
     return {
       label: "High confidence",
-      className: "bg-[#166534] text-[#4ade80]",
+      bg: "rgba(0,240,255,0.1)",
+      border: "rgba(0,240,255,0.25)",
+      color: "var(--cyan)",
     };
   if (confidence >= 0.8)
     return {
       label: "Review recommended",
-      className: "bg-[#713f12] text-[#f59e0b]",
+      bg: "rgba(255,170,0,0.1)",
+      border: "rgba(255,170,0,0.25)",
+      color: "var(--anomaly)",
     };
-  return { label: "Low confidence", className: "bg-[#7f1d1d] text-[#f87171]" };
+  return {
+    label: "Low confidence",
+    bg: "rgba(255,0,170,0.1)",
+    border: "rgba(255,0,170,0.25)",
+    color: "var(--magenta)",
+  };
 }
 
 // Split text into segments: plain text and anomaly spans interleaved
@@ -116,33 +125,76 @@ export function TextPanel({ result }: TextPanelProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
+      <div
+        className="glass flex items-center justify-between px-4 py-2"
+        style={{ borderBottom: "1px solid var(--border)" }}
+      >
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+            style={{ color: "var(--text-dim)" }}
+          >
             Extracted Text
           </span>
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="rounded border border-zinc-700 px-2 py-0.5 text-[10px] text-zinc-400 hover:border-zinc-500 transition-colors"
+            className="rounded px-2 py-0.5 text-[10px] transition-all glass"
+            style={{
+              border: "1px solid var(--border)",
+              color: "var(--text-dim)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "rgba(0,240,255,0.3)";
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "var(--border)";
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text-dim)";
+            }}
           >
             {isEditing ? "Done editing" : "Edit"}
           </button>
         </div>
         <div className="flex items-center gap-2">
+          {/* Confidence badge */}
           <span
-            className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${badge.className}`}
+            className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
+            style={{
+              background: badge.bg,
+              border: `1px solid ${badge.border}`,
+              color: badge.color,
+            }}
           >
             {(result.confidence * 100).toFixed(0)}% · {badge.label}
           </span>
+          {/* Anomaly count badge */}
           {unresolvedAnomalies.length > 0 && (
-            <span className="rounded-full bg-[#713f12] px-2.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
+              style={{
+                background: "rgba(255,170,0,0.1)",
+                border: "1px solid rgba(255,170,0,0.25)",
+                color: "var(--anomaly)",
+              }}
+            >
               {unresolvedAnomalies.length} anomal
               {unresolvedAnomalies.length === 1 ? "y" : "ies"}
             </span>
           )}
           {(result.metadata.streamAFailed || result.metadata.streamBFailed) && (
-            <span className="rounded-full bg-[#713f12] px-2.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
+              style={{
+                background: "rgba(255,170,0,0.1)",
+                border: "1px solid rgba(255,170,0,0.25)",
+                color: "var(--anomaly)",
+              }}
+            >
               Single stream
             </span>
           )}
@@ -156,13 +208,15 @@ export function TextPanel({ result }: TextPanelProps) {
           <textarea
             value={text}
             onChange={(e) => handleEdit(e.target.value)}
-            className="w-full min-h-[400px] resize-none bg-transparent font-[family-name:var(--font-geist-mono)] text-sm leading-relaxed text-zinc-200 outline-none"
+            className="w-full min-h-[400px] resize-none bg-transparent text-sm leading-relaxed outline-none font-[family-name:var(--font-plex-mono)]"
+            style={{ color: "var(--text)" }}
           />
         ) : (
           /* View mode: highlighted text with inline anomaly spans */
           <pre
             ref={editRef}
-            className="whitespace-pre-wrap break-words font-[family-name:var(--font-geist-mono)] text-sm leading-relaxed text-zinc-200"
+            className="whitespace-pre-wrap break-words text-sm leading-relaxed font-[family-name:var(--font-plex-mono)]"
+            style={{ color: "var(--text)" }}
           >
             {segments.map((seg) =>
               seg.type === "text" ? (
@@ -179,7 +233,20 @@ export function TextPanel({ result }: TextPanelProps) {
                         activeAnomaly === seg.anomaly ? null : seg.anomaly,
                       )
                     }
-                    className="inline rounded bg-[#f59e0b]/20 border border-[#f59e0b]/30 px-0.5 text-[#f59e0b] hover:bg-[#f59e0b]/30 transition-colors animate-anomaly-flash"
+                    className="inline rounded px-0.5 transition-colors animate-anomaly-pulse"
+                    style={{
+                      background: "rgba(255,170,0,0.15)",
+                      border: "1px solid rgba(255,170,0,0.35)",
+                      color: "var(--anomaly)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(255,170,0,0.25)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(255,170,0,0.15)";
+                    }}
                   >
                     {seg.anomaly.streamA || seg.anomaly.streamB}
                     <span className="ml-0.5 text-[10px]">⚠</span>
@@ -199,24 +266,67 @@ export function TextPanel({ result }: TextPanelProps) {
       </div>
 
       {/* Action bar */}
-      <div className="flex items-center justify-between border-t border-zinc-800 px-4 py-3">
-        <span className="text-xs text-zinc-600">
+      <div
+        className="glass flex items-center justify-between px-4 py-3"
+        style={{ borderTop: "1px solid var(--border)" }}
+      >
+        <span
+          className="text-[10px] font-[family-name:var(--font-plex-mono)]"
+          style={{ color: "var(--text-dim)" }}
+        >
           {result.metadata.duration
             ? `Processed in ${(result.metadata.duration / 1000).toFixed(1)}s`
             : ""}
         </span>
         <div className="flex gap-2">
+          {/* Copy button: outline style */}
           <button
             type="button"
             onClick={handleCopy}
-            className="rounded-lg bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
+            className="rounded-lg px-4 py-2 text-xs font-medium transition-all"
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border)",
+              color: "var(--text-dim)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "rgba(0,240,255,0.3)";
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "var(--border)";
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text-dim)";
+            }}
           >
             Copy Text
           </button>
+          {/* Export button: cyan glow */}
           <button
             type="button"
             onClick={handleExport}
-            className="rounded-lg bg-[#4ade80] px-4 py-2 text-xs font-semibold text-black hover:bg-[#22c55e] transition-colors"
+            className="rounded-lg px-4 py-2 text-xs font-semibold transition-all glow-cyan"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,240,255,0.2), rgba(0,240,255,0.1))",
+              border: "1px solid rgba(0,240,255,0.4)",
+              color: "var(--cyan)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "linear-gradient(135deg, rgba(0,240,255,0.3), rgba(0,240,255,0.18))";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                "0 0 20px rgba(0,240,255,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "linear-gradient(135deg, rgba(0,240,255,0.2), rgba(0,240,255,0.1))";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                "0 0 20px rgba(0,240,255,0.15), 0 0 60px rgba(0,240,255,0.05)";
+            }}
           >
             Export JSON
           </button>
